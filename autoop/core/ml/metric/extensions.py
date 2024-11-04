@@ -106,7 +106,6 @@ class Precision(Metric):
         all_positives = int(0)
         n_predictions = len(predictions)
         for i in range(0, n_predictions):
-            
             if positives_counter(positive, predictions[i]):
                 all_positives += 1
                 if predictions[i] == ground_truth[i]:
