@@ -5,6 +5,7 @@ import pandas as pd
 from autoop.core.ml.dataset import Dataset
 from autoop.core.ml.feature import Feature
 from autoop.functional.feature import detect_feature_types
+from autoop.core.ml.metric.extensions import Precision
 
 class TestFeatures(unittest.TestCase):
 
@@ -70,3 +71,45 @@ class TestFeatures(unittest.TestCase):
             self.assertEqual(detected_feature.type, "numerical")
         for detected_feature in filter(lambda x: x.name in categorical_columns, features):
             self.assertEqual(detected_feature.type, "categorical")
+
+
+class TestPrecision(unittest.TestCase):
+    
+    def setUp(self):
+        self.precision = Precision()
+
+    def test_evaluate_default(self):
+        predictions = [True, False, True, True, False]
+        ground_truth = [True, False, False, True, False]
+        result = self.precision._evaluate(predictions, ground_truth)
+        self.assertEqual(result, 2/3)
+
+    def test_evaluate_pos_int(self):
+        predictions = [1, -1, 2, 3, -2]
+        ground_truth = [1, -1, 1, 3, -2]
+        result = self.precision._evaluate(predictions, ground_truth, positive="pos_int")
+        self.assertEqual(result, 2/3)
+
+    def test_evaluate_neg_int(self):
+        predictions = [-1, -2, -3, 1, 2]
+        ground_truth = [-1, -2, -1, 1, 2]
+        result = self.precision._evaluate(predictions, ground_truth, positive="neg_int")
+        self.assertEqual(result, 2/3)
+
+    def test_evaluate_true(self):
+        predictions = [True, False, True, True, False]
+        ground_truth = [True, False, False, True, False]
+        result = self.precision._evaluate(predictions, ground_truth, positive=True)
+        self.assertEqual(result, 2/3)
+
+    def test_evaluate_false(self):
+        predictions = [True, False, True, True, False]
+        ground_truth = [True, False, False, True, False]
+        result = self.precision._evaluate(predictions, ground_truth, positive=False)
+        self.assertEqual(result, 1.0)
+
+    def test_evaluate_invalid_positive(self):
+        predictions = [True, False, True, True, False]
+        ground_truth = [True, False, False, True, False]
+        with self.assertRaises(TypeError):
+            self.precision._evaluate(predictions, ground_truth, positive="invalid")

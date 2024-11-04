@@ -1,5 +1,6 @@
 import numpy as np
-from metric import Metric
+
+from autoop.core.ml.metric.metric import Metric
 
 
 class MeanSquaredError(Metric):
@@ -67,9 +68,8 @@ class Precision(Metric):
     p = True positive / all positives
     """
 
-    @property
     def _evaluate(
-        self, predictions, ground_truth, positive: str | bool | None = None
+        self, predictions, ground_truth, positive: str | None | bool = None
     ) -> float:
         def positives_counter(positive, prediction):
             if positive is None:
@@ -78,7 +78,7 @@ class Precision(Metric):
                 ):
                     return True
 
-            options = ["pos_int", "neg_int", True, False]
+            options = ["pos_int", "neg_int", True, False, None]
             if positive not in options:
                 raise TypeError("Invalid argument for 'positive'.")
 
@@ -106,10 +106,11 @@ class Precision(Metric):
         all_positives = int(0)
         n_predictions = len(predictions)
         for i in range(0, n_predictions):
-            if predictions[i] == ground_truth[i]:
-                true_positives += 1
+            
             if positives_counter(positive, predictions[i]):
                 all_positives += 1
+                if predictions[i] == ground_truth[i]:
+                    true_positives += 1
 
         if true_positives == 0 or all_positives == 0:
             return 0
