@@ -20,6 +20,7 @@ class Pipeline():
                  target_feature: Feature,
                  split=0.8,
                  ):
+        """Initializes the pipeline with the given parameters"""
         self._dataset = dataset
         self._model = model
         self._input_features = input_features
@@ -33,6 +34,7 @@ class Pipeline():
             raise ValueError("Model type must be regression for continuous target feature")
 
     def __str__(self):
+        """Used to get the string representation of the pipeline"""
         return f"""
 Pipeline(
     model={self._model.type},
@@ -45,6 +47,7 @@ Pipeline(
 
     @property
     def model(self):
+        """Used to get the model used in the pipeline"""
         return self._model
 
     @property
@@ -72,9 +75,11 @@ Pipeline(
         return artifacts
     
     def _register_artifact(self, name: str, artifact):
+        """Registers an artifact with the pipeline"""
         self._artifacts[name] = artifact
 
     def _preprocess_features(self):
+        """Preprocesses the features in the dataset"""
         (target_feature_name, target_data, artifact) = preprocess_features([self._target_feature], self._dataset)[0]
         self._register_artifact(target_feature_name, artifact)
         input_results = preprocess_features(self._input_features, self._dataset)
@@ -85,6 +90,7 @@ Pipeline(
         self._input_vectors = [data for (feature_name, data, artifact) in input_results]
 
     def _split_data(self):
+        """Splits the data into training and testing sets"""
         # Split the data into training and testing sets
         split = self._split
         self._train_X = [vector[:int(split * len(vector))] for vector in self._input_vectors]
@@ -93,14 +99,17 @@ Pipeline(
         self._test_y = self._output_vector[int(split * len(self._output_vector)):]
 
     def _compact_vectors(self, vectors: List[np.array]) -> np.array:
+        """Compacts the input vectors into a single matrix"""
         return np.concatenate(vectors, axis=1)
 
     def _train(self):
+        """Trains the model on the training data"""
         X = self._compact_vectors(self._train_X)
         Y = self._train_y
         self._model.fit(X, Y)
 
     def _evaluate(self):
+        """Evaluates the model on the test data"""
         X = self._compact_vectors(self._test_X)
         Y = self._test_y
         self._metrics_results = []
@@ -111,14 +120,28 @@ Pipeline(
         self._predictions = predictions
 
     def execute(self):
+        """Executes the pipeline and returns the results"""
         self._preprocess_features()
         self._split_data()
         self._train()
         self._evaluate()
+        test_metrics_results = self._metrics_results
+        test_predictions = self._predictions
+
+        train_X = self._compact_vectors(self._train_X)
+        train_Y = self._train_y
+        train_metrics_results = []
+        train_predictions = self._model.predict(train_X)
+        for metric in self._metrics:
+            result = metric.evaluate(train_predictions, train_Y)
+            train_metrics_results.append((metric, result))
+        
         return {
-            "metrics": self._metrics_results,
-            "predictions": self._predictions,
-        }
+        "train_metrics": train_metrics_results,
+        "train_predictions": train_predictions,
+        "test_metrics": test_metrics_results,
+        "test_predictions": test_predictions,
+    }
         
 
     
