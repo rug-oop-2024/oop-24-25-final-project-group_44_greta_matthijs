@@ -77,7 +77,7 @@ class Precision(Metric):
         true_positives = int(0)
         all_positives = int(0)
         n_predictions = len(predictions)
-        
+
         # find all positives
         for i in range(0, n_predictions):
             if _positives_counter(positive, predictions[i]):
@@ -101,11 +101,12 @@ class Recall(Metric):
 
     Recall = true positives / (true positives + false negatives)
     """
-    
-    def _evaluate(self, predictions, ground_truth, positive: str | None | bool = None) -> float:
-        
+
+    def _evaluate(
+        self, predictions, ground_truth, positive: str | None | bool = None
+    ) -> float:
         _check_positive(positive)
-        
+
         true_positives = 0
         false_negatives = 0
         n_predictions = len(predictions)
@@ -114,11 +115,11 @@ class Recall(Metric):
             if _positives_counter(positive, predictions[i]):
                 if predictions[i] == ground_truth[i]:
                     true_positives += 1
-                
+
             else:
                 if predictions[i] != ground_truth[i]:
-                    false_negatives += 1    
-           
+                    false_negatives += 1
+
         if true_positives == 0 and false_negatives == 0:
             return 0
 

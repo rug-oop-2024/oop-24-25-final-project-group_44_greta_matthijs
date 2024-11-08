@@ -13,6 +13,7 @@ class TestFeatures(unittest.TestCase):
     """
     Tests ml features.
     """
+
     def setUp(self) -> None:
         pass
 
@@ -152,7 +153,7 @@ class TestRecall(unittest.TestCase):
         predictions = [True, False, True, True, False]
         ground_truth = [True, False, False, True, False]
         result = self.recall._evaluate(predictions, ground_truth, positive=False)
-        self.assertEqual(result, 2/3)
+        self.assertEqual(result, 2 / 3)
 
     def test_evaluate_no_true_positives(self):
         predictions = [False, False, False, False]
