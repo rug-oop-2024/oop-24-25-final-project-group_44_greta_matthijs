@@ -1,6 +1,6 @@
 import numpy as np
 
-from autoop.core.ml.metric.metric import Metric
+from autoop.core.ml.metric.metric import Metric, _check_positive, _positives_counter
 
 
 class MeanSquaredError(Metric):
@@ -31,7 +31,7 @@ class Accuracy(Metric):
     def _evaluate(self, predictions, ground_truth) -> float:
         n_predictions = len(predictions)
         count = 0
-        for i in range(0, n_predictions):
+        for i in range(n_predictions):
             if predictions[i] == ground_truth[i]:
                 count += 1
         return count / n_predictions
@@ -71,47 +71,55 @@ class Precision(Metric):
     def _evaluate(
         self, predictions, ground_truth, positive: str | None | bool = None
     ) -> float:
-        def positives_counter(positive, prediction):
-            if positive is None:
-                if prediction is True or (
-                    isinstance(prediction, (float, int)) and prediction > 0
-                ):
-                    return True
+        _check_positive(positive)
 
-            options = ["pos_int", "neg_int", True, False, None]
-            if positive not in options:
-                raise TypeError("Invalid argument for 'positive'.")
-
-            if positive == "pos_int":
-                if prediction > 0:
-                    return True
-                return False
-
-            elif positive == "neg_int":
-                if prediction < 0:
-                    return True
-                return False
-
-            elif positive is True:
-                if prediction is True:
-                    return True
-                return False
-
-            elif positive is False:
-                if prediction is False:
-                    return True
-                return False
-
+        # initialize variables
         true_positives = int(0)
         all_positives = int(0)
         n_predictions = len(predictions)
+        
+        # find all positives
         for i in range(0, n_predictions):
-            if positives_counter(positive, predictions[i]):
+            if _positives_counter(positive, predictions[i]):
                 all_positives += 1
                 if predictions[i] == ground_truth[i]:
                     true_positives += 1
 
-        if true_positives == 0 or all_positives == 0:
+        # to prevent 0 division error
+        if all_positives == 0:
             return 0
 
         return true_positives / all_positives
+
+
+class Recall(Metric):
+    """
+    Calculates the recall.
+
+     {positve} should be in ["pos_int", "neg_int", True, False]
+        default is set for True values, positve int
+
+    Recall = true positives / (true positives + false negatives)
+    """
+    
+    def _evaluate(self, predictions, ground_truth, positive: str | None | bool = None) -> float:
+        
+        _check_positive(positive)
+        
+        true_positives = 0
+        false_negatives = 0
+        n_predictions = len(predictions)
+
+        for i in range(0, n_predictions):
+            if _positives_counter(positive, predictions[i]):
+                if predictions[i] == ground_truth[i]:
+                    true_positives += 1
+                
+            else:
+                if predictions[i] != ground_truth[i]:
+                    false_negatives += 1    
+           
+        if true_positives == 0 and false_negatives == 0:
+            return 0
+
+        return true_positives / (true_positives + false_negatives)
