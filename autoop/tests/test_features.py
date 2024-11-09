@@ -5,7 +5,7 @@ from sklearn.datasets import fetch_openml, load_iris
 
 from autoop.core.ml.dataset import Dataset
 from autoop.core.ml.feature import Feature
-from autoop.core.ml.metric.extensions import Precision, Recall
+from autoop.core.ml.metric import Precision, Recall
 from autoop.functional.feature import detect_feature_types
 
 
