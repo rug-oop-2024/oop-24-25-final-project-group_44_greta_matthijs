@@ -12,7 +12,18 @@ METRICS = [
 def get_metric(name: str):
     # Factory function to get a metric by name.
     # Return a metric instance given its str name.
-    raise NotImplementedError("To be implemented.")
+    match name:
+        case "Mean Squared Error":
+            return MeanSquaredError()
+        case "Accuracy":
+            return Accuracy()
+        case "AccuracyInterval":
+            return AccuracyInterval()
+        case "Precision":
+            return Precision()
+        case "log_loss":
+            return LogLoss()
+    raise ValueError(f"No metric with name {name}")
 
 
 def _positives_counter(positive, prediction):
@@ -46,7 +57,7 @@ def _check_positive(positive):
 class Metric(ABC):
     """Base class for all metrics."""
 
-    def __call__(self, predictions, ground_truth) -> float:
+    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
         return self.evaluate(predictions, ground_truth)
 
     @property
@@ -63,7 +74,7 @@ class MeanSquaredError(Metric):
     """
 
     @property
-    def _evaluate(self, predictions, ground_truth) -> float:
+    def _evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
         n_predictions = len(predictions)
         count = float(0)
         for i in range(0, n_predictions):
@@ -80,7 +91,7 @@ class Accuracy(Metric):
     """
 
     @property
-    def _evaluate(self, predictions, ground_truth) -> float:
+    def _evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
         n_predictions = len(predictions)
         count = 0
         for i in range(n_predictions):
@@ -98,7 +109,9 @@ class AccuracyInterval(Metric):
     """
 
     @property
-    def _evaluate(self, predictions, ground_truth, interval: float = 0) -> float:
+    def _evaluate(
+        self, predictions: np.ndarray, ground_truth: np.ndarray, interval: float = 0
+    ) -> float:
         n_predictions = len(predictions)
         count = 0
         for i in range(0, n_predictions):
@@ -121,7 +134,10 @@ class Precision(Metric):
     """
 
     def _evaluate(
-        self, predictions, ground_truth, positive: str | None | bool = None
+        self,
+        predictions: np.ndarray,
+        ground_truth: np.ndarray,
+        positive: str | None | bool = None,
     ) -> float:
         _check_positive(positive)
 
@@ -155,7 +171,10 @@ class Recall(Metric):
     """
 
     def _evaluate(
-        self, predictions, ground_truth, positive: str | None | bool = None
+        self,
+        predictions: np.ndarray,
+        ground_truth: np.ndarray,
+        positive: str | None | bool = None,
     ) -> float:
         _check_positive(positive)
 
@@ -176,3 +195,20 @@ class Recall(Metric):
             return 0
 
         return true_positives / (true_positives + false_negatives)
+
+
+class LogLoss(Metric):
+    """
+    Calculates the logarithmic loss.
+
+    Log Loss= -N1∑i = 1N∑j = 1Myij⋅log(pij)
+    """
+
+    def _evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+        clip_size = 1e-15
+        predictions = np.clip(predictions, clip_size, 1 - clip_size)
+        log_loss = np.sum(
+            ground_truth * np.log(predictions)
+            + (1 - ground_truth) * np.log(1 - predictions)
+        )
+        return -log_loss / len(ground_truth)
