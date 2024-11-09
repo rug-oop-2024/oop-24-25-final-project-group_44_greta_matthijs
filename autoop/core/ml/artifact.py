@@ -1,4 +1,6 @@
-from typing import Any, Dict, Tuple
+import uuid
+from datetime import datetime
+from typing import Any, Dict, List
 
 from pydantic import BaseModel
 
@@ -6,10 +8,17 @@ from pydantic import BaseModel
 class Artifact(BaseModel):
     """Base class for all artifacts."""
 
-    typ: str
-    args: Tuple[Any, ...] = ()
-    kwargs: Dict[str, Any] = {}
+    type: str
+    name: str
+    asset_path: str
+    version: str = "1.0.0"
     data: bytes = b""
+    tags: List[str] = []
+    metadata: Dict[str, Any] = {
+            "created_at": datetime.now().isoformat(),
+            "file_size": len(data)
+        }
+    id: str = str(uuid.uuid4())
 
     @property
     def typ(self) -> str:
@@ -22,34 +31,14 @@ class Artifact(BaseModel):
         self.typ = typ
 
     @property
-    def args(self) -> Tuple[Any, ...]:
-        """Getter for _args."""
-        return self.args
-
-    @args.setter
-    def args(self, args: Tuple[Any, ...]):
-        """Setter for _args."""
-        self.args = args
-
-    @property
-    def kwargs(self) -> Dict[str, Any]:
-        """Getter for _kwargs."""
-        return self.kwargs
-
-    @kwargs.setter
-    def kwargs(self, kwargs: Dict[str, Any]):
-        """Setter for _kwargs."""
-        self.kwargs = kwargs
-
-    @property
     def data(self) -> bytes:
         """Getter for _data, returns decoded bytes."""
-        return self.data
+        return self._data
 
     @data.setter
     def data(self, data: bytes):
         """Setter for _data, encodes data in base64."""
-        self.data = data
+        self._data = data
 
     def read(self) -> bytes:
         """Read the artifact."""

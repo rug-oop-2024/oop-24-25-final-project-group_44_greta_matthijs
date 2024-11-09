@@ -11,10 +11,10 @@ import numpy as np
 
 
 class Pipeline():
-    
-    def __init__(self, 
+    """Pipeline class used to train and evaluate models"""
+    def __init__(self,
                  metrics: List[Metric],
-                 dataset: Dataset, 
+                 dataset: Dataset,
                  model: Model,
                  input_features: List[Feature],
                  target_feature: Feature,
@@ -73,7 +73,7 @@ Pipeline(
         artifacts.append(Artifact(name="pipeline_config", data=pickle.dumps(pipeline_data)))
         artifacts.append(self._model.to_artifact(name=f"pipeline_model_{self._model.type}"))
         return artifacts
-    
+
     def _register_artifact(self, name: str, artifact):
         """Registers an artifact with the pipeline"""
         self._artifacts[name] = artifact
@@ -135,13 +135,10 @@ Pipeline(
         for metric in self._metrics:
             result = metric.evaluate(train_predictions, train_Y)
             train_metrics_results.append((metric, result))
-        
-        return {
-        "train_metrics": train_metrics_results,
-        "train_predictions": train_predictions,
-        "test_metrics": test_metrics_results,
-        "test_predictions": test_predictions,
-    }
-        
 
-    
+        return {
+            "train_metrics": train_metrics_results,
+            "train_predictions": train_predictions,
+            "test_metrics": test_metrics_results,
+            "test_predictions": test_predictions,
+        }

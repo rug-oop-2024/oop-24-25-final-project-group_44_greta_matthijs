@@ -7,7 +7,7 @@ class Feature(BaseModel):
     """Feature class to represent a feature in a dataset."""
 
     name: str
-    typ: Literal["categorical", "numerical"]
+    type: Literal["categorical", "numerical"]
 
     @property
     def name(self) -> str:
@@ -20,15 +20,15 @@ class Feature(BaseModel):
         self.name = name
 
     @property
-    def typ(self) -> Literal["categorical", "numerical"]:
+    def type(self) -> Literal["categorical", "numerical"]:
         """Getter for _type."""
-        return self.typ
+        return self.type
 
-    @typ.setter
-    def typ(self, typ: Literal["categorical", "numerical"]):
+    @type.setter
+    def type(self, typ: Literal["categorical", "numerical"]):
         """Setter for _type."""
-        self.typ = typ
+        self.type = typ
 
     def __str__(self):
         """Return the string representation of the feature."""
-        return f"Feature(name={self._name}, type={self._type})"
+        return f"Feature(name={self.name}, type={self.type})"
