@@ -1,7 +1,12 @@
 import unittest
 
 # from autoop.tests.test_database import TestDatabase
-from autoop.tests.test_features import TestFeatures, TestPrecision, TestRecall
+from autoop.tests.test_features import (
+    TestFeatures,
+    TestMeanAbsoluteError,
+    TestPrecision,
+    TestRecall,
+)
 
 # from autoop.tests.test_pipeline import TestPipeline
 # from autoop.tests.test_storage import TestStorage

@@ -21,8 +21,10 @@ def get_metric(name: str):
             return AccuracyInterval()
         case "Precision":
             return Precision()
-        case "log_loss":
+        case "Log Loss":
             return LogLoss()
+        case "Mean Absolute Error":
+            return MeanAbsoluteError()
     raise ValueError(f"No metric with name {name}")
 
 
@@ -133,6 +135,7 @@ class Precision(Metric):
     p = True positive / all positives
     """
 
+    @property
     def _evaluate(
         self,
         predictions: np.ndarray,
@@ -170,6 +173,7 @@ class Recall(Metric):
     Recall = true positives / (true positives + false negatives)
     """
 
+    @property
     def _evaluate(
         self,
         predictions: np.ndarray,
@@ -204,6 +208,7 @@ class LogLoss(Metric):
     Log Loss= -N1∑i = 1N∑j = 1Myij⋅log(pij)
     """
 
+    @property
     def _evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
         clip_size = 1e-15
         predictions = np.clip(predictions, clip_size, 1 - clip_size)
@@ -212,3 +217,15 @@ class LogLoss(Metric):
             + (1 - ground_truth) * np.log(1 - predictions)
         )
         return -log_loss / len(ground_truth)
+
+
+class MeanAbsoluteError(Metric):
+    r"""
+    Calculates the mean absolute error.
+
+    Mean Absolute Error = sum of absolute errors
+    """
+
+    @property
+    def _evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+        return np.mean(np.abs(ground_truth - predictions))
