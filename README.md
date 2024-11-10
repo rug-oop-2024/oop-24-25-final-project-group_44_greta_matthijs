@@ -95,10 +95,10 @@ E.g. docs/decisions/DSC-0001-use-typescript.md
 Some examples include housing prices, second-hand cars, etc.
 
 ### Checklist
-- [ ] I have read the instructions carefully.
-- [ ] I have filled my personal rubric.
+- [x] I have read the instructions carefully.
+- [x] I have filled my personal rubric.
 - [ ] The code is refactored to style standards.
-- [ ] I have passed my tests.
+- [x] I have passed my tests.
 - [ ] I have documented my code and decisions.
 
 # Grading & Submission (IMPORTANT)
@@ -154,11 +154,11 @@ If you did not implement the feature
 | Requirement                           | Type (FN/NF) | Implemented by       | Implementation Completed (add X if done) | Comment |
 |-------------------------------------- |--------------|----------------------|--------------------------|---------|         
 | Up-to-date requirements.txt           | NF           |                      |         | |
-| `ML/detect-features`                  | FN           |                      |         | |
-| `ML/artifact`                         | NF           |                      |         | |
-| `ML/feature`                          | NF           |                      |         | |
-| `ML/metric`                           | NF           |                      |         | |
-| `ML/metric/extensions`                | FN           |                      |         | |
+| `ML/detect-features`                  | FN           | Greta                     |   x      | |
+| `ML/artifact`                         | NF           | Greta                     |    x     | |
+| `ML/feature`                          | NF           | Greta/Matthijs                     |     x    | |
+| `ML/metric`                           | NF           | Matthijs                     |      x   | |
+| `ML/metric/extensions`                | FN           | Matthijs                     |       x  | |
 | `ML/model`                            | NF           |                      |         | |
 | `ML/model/extensions`                 | FN           |                      |         | |
 | `ML/pipeline/evaluation`              | FN           |                      |         | | 
