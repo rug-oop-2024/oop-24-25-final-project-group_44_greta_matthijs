@@ -1,26 +1,31 @@
-import streamlit as st
+import streamlit as st  # noqa
 
 from app.core.system import AutoMLSystem
 from autoop.core.ml.dataset import Dataset
-from autoop.functional.feature import detect_feature_types
-from autoop.core.ml.model.regression.multiple_linear_regression import MultipleLinearRegression
-from autoop.core.ml.model.regression.lasso import LassoRegression
-from autoop.core.ml.model.regression.ridge import RidgeRegression
-from autoop.core.ml.model.classification.logisticregression import LogisticRegression
-from autoop.core.ml.model.classification.knearest import KNearestNeighborsModel
-from autoop.core.ml.model.classification.decisiontree import DecisionTreeModel
-from autoop.core.ml.pipeline import Pipeline
 from autoop.core.ml.metric import METRICS, get_metric
+from autoop.core.ml.model.classification.decisiontree import DecisionTreeModel
+from autoop.core.ml.model.classification.knearest import KNearestNeighborsModel
+from autoop.core.ml.model.classification.logisticregression import LogisticRegression
+from autoop.core.ml.model.regression.lasso import LassoRegression
+from autoop.core.ml.model.regression.multiple_linear_regression import (
+    MultipleLinearRegression,
+)
+from autoop.core.ml.model.regression.ridge import RidgeRegression
+from autoop.core.ml.pipeline import Pipeline
+from autoop.functional.feature import detect_feature_types
 
 st.set_page_config(page_title="Modelling", page_icon="📈")
 
 
 def write_helper_text(text: str):
-    st.write(f"<p style=\"color: #888;\">{text}</p>", unsafe_allow_html=True)
+    """Writes helper text to the page"""
+    st.write(f'<p style="color: #888;">{text}</p>', unsafe_allow_html=True)
 
 
 st.write("# ⚙ Modelling")
-write_helper_text("In this section, you can design a machine learning pipeline to train a model on a dataset.")
+write_helper_text(
+    "In this section, you can design a machine learning pipeline to train a model on a dataset."  # noqa
+)
 
 automl = AutoMLSystem.get_instance()
 
@@ -31,8 +36,9 @@ st.write("### Select a Dataset")
 dataset_names = [dataset.name for dataset in datasets]
 selected_dataset_name = st.selectbox("Dataset", dataset_names)
 
-selected_dataset = next(dataset for dataset in datasets if dataset.name == selected_dataset_name)
-st.write(selected_dataset.name)
+selected_dataset = next(
+    dataset for dataset in datasets if dataset.name == selected_dataset_name
+)
 selected_dataset_id = selected_dataset.id
 
 selected_artifact = automl.registry.get(selected_dataset_id)
@@ -42,7 +48,7 @@ selected_dataset = Dataset(
     data=selected_artifact.data,
     version=selected_artifact.version,
     tags=selected_artifact.tags,
-    metadata=selected_artifact.metadata
+    metadata=selected_artifact.metadata,
 )
 
 if selected_dataset:
@@ -50,7 +56,9 @@ if selected_dataset:
     features = detect_feature_types(selected_dataset)
     feature_names = [feature.name for feature in features]
     target_feature = st.selectbox("Select Target Feature", feature_names)
-    rest_feature_names = [feature for feature in feature_names if feature != target_feature]
+    rest_feature_names = [
+        feature for feature in feature_names if feature != target_feature
+    ]
     input_features = st.multiselect("Select Input Features", rest_feature_names)
     input_features = [feature for feature in features if feature.name in input_features]
 
@@ -62,8 +70,16 @@ if selected_dataset:
         st.write("##### Regression Task")
 
     st.write("Select a Model based on the task type")
-    regression_models = ["Multiple Linear Regression", "Lasso Regression", "Ridge Regression"]
-    classification_models = ["Logistic Regression", "K Nearest Neighbors", "Decision Tree"]
+    regression_models = [
+        "Multiple Linear Regression",
+        "Lasso Regression",
+        "Ridge Regression",
+    ]
+    classification_models = [
+        "Logistic Regression",
+        "K Nearest Neighbors",
+        "Decision Tree",
+    ]
 
     if target.type == "categorical":
         model = st.selectbox("Select Model", classification_models)
@@ -89,7 +105,7 @@ if selected_dataset:
     st.write("### Metrics")
     metrics = METRICS
     metric_names = [metric for metric in metrics]
-    selected_metrics = st.multiselect("Select Metrics", metric_names)
+    selected_metrics = st.multiselect("Select Metrics", METRICS)
     metrics = []
     for metric_name in selected_metrics:
         try:
@@ -105,3 +121,20 @@ if selected_dataset:
     if st.button("Train Model"):
         pipeline.execute()
         st.write("Model trained successfully!")
+
+    st.write("### Save Pipeline")
+    name = st.text_input("Enter pipeline name")
+    version = st.text_input("Enter pipeline version", value="1.0.0")
+    if name and st.button("Save"):
+        pipeline_artifact = pipeline._save(name, version)
+        automl.registry.register(pipeline_artifact)
+        st.write("Pipeline saved successfully!")
+
+    st.write("### Make Predictions")
+    if st.button("Make Predictions"):
+        predictions = pipeline.execute()
+        st.write(predictions)
+        st.write("Predictions made successfully!")
+
+else:
+    st.write("No datasets found. Please upload a dataset in the previous step.")

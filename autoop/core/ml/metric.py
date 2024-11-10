@@ -1,29 +1,46 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
 import numpy as np
 
 METRICS = [
     "mean_squared_error",
     "accuracy",
+    "mean_absolute_percentage_error",
+    "precision",
+    "log_loss",
+    "recall",
 ]  # add the names (in strings) of the metrics you implement
 
 
 def get_metric(name: str):
+    """
+    Get a metric by name.
+
+    Args:
+        name (str): Name of the metric. One of the METRICS.
+
+    Currently only two metrics are supported:
+        - mean_squared_error
+        - accuracy
+    """
     # Factory function to get a metric by name.
     # Return a metric instance given its str name.
-    match name:
-        case "Mean Squared Error":
-            return MeanSquaredError()
-        case "Accuracy":
-            return Accuracy()
-        case "AccuracyInterval":
-            return AccuracyInterval()
-        case "Precision":
-            return Precision()
-        case "log_loss":
-            return LogLoss()
-    raise ValueError(f"No metric with name {name}")
+    if name == "mean_squared_error":
+        return MeanSquaredError()
+    elif name == "accuracy":
+        return Accuracy()
+    elif name == "precision":
+        return Precision()
+    elif name == "recall":
+        return Recall()
+    elif name == "log_loss":
+        return LogLoss()
+    elif name == "mean_absolute_percentage_error":
+        return MeanAbsolutePercentageError()
+    else:
+        raise ValueError(
+            f"\nUnknown metric: {name} \n Supported metrics are: {list(METRICS)}"
+        )
 
 
 def _positives_counter(positive, prediction):
@@ -32,16 +49,16 @@ def _positives_counter(positive, prediction):
     if positive == "pos_int" and prediction > 0:
         return True
 
-    elif positive == "neg_int" and prediction < 0:
+    if positive == "neg_int" and prediction < 0:
         return True
 
-    elif positive is True and prediction is True:
+    if positive is True and prediction is True:
         return True
 
-    elif positive is False and prediction is False:
+    if positive is False and prediction is False:
         return True
 
-    elif positive is None and (prediction is True or prediction < 0):
+    if positive is None and (prediction is True or prediction < 0):
         return True
 
     return False
@@ -57,13 +74,14 @@ def _check_positive(positive):
 class Metric(ABC):
     """Base class for all metrics."""
 
-    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
-        return self.evaluate(predictions, ground_truth)
-
-    @property
     @abstractmethod
-    def _evaluate(self, predictions, ground_truth) -> float:
+    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+        """Calculate the metric."""
         pass
+
+    def evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+        """Evaluate the metric."""
+        return self(predictions, ground_truth)
 
 
 class MeanSquaredError(Metric):
@@ -73,14 +91,9 @@ class MeanSquaredError(Metric):
     Mean Squared Error=\frac{1}{n}\sum_{i=1}^{n}(\hat{y}^{(i)}-y^{(i)})^2$.
     """
 
-    @property
-    def _evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
-        n_predictions = len(predictions)
-        count = float(0)
-        for i in range(0, n_predictions):
-            error = predictions[i] - ground_truth[i]
-            count += np.square(error)
-        return count / n_predictions
+    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+        """Measure the mean squared error of the model."""
+        return np.mean((ground_truth - predictions) ** 2)
 
 
 class Accuracy(Metric):
@@ -90,8 +103,8 @@ class Accuracy(Metric):
     $\text{Accuracy} = \frac{1}{n}\sum_{i=1}^{n}\mathbb{I}[\hat{y}^{(i)}=y^{i}]$
     """
 
-    @property
-    def _evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+        """Measure the accuracy model."""
         n_predictions = len(predictions)
         count = 0
         for i in range(n_predictions):
@@ -100,27 +113,38 @@ class Accuracy(Metric):
         return count / n_predictions
 
 
-class AccuracyInterval(Metric):
-    r"""
-    Calculates the accuracy with an acceptance interval of size 2*x.
+class MeanAbsolutePercentageError(Metric):
+    """
+    Calculates the Mean Absolute Percentage Error (MAPE).
 
-    $\text{Accuracy} =
-    \frac{1}{n}\sum_{i=1}^{n}\mathbb{I}[\hat{y}^{(i)} in [y^{i}-x, y^{i}+x]]$
+    MAPE = (1/n) * sum(|(ground_truth - predictions) / ground_truth|) * 100
     """
 
-    @property
-    def _evaluate(
-        self, predictions: np.ndarray, ground_truth: np.ndarray, interval: float = 0
-    ) -> float:
-        n_predictions = len(predictions)
-        count = 0
-        for i in range(0, n_predictions):
-            if predictions[i] in range(
-                ground_truth[i] - interval, ground_truth[i] + interval
-            ):
-                count += 1
+    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+        """Measures the MAPE of the model."""
+        predictions = np.asarray(predictions).flatten()
+        ground_truth = np.asarray(ground_truth).flatten()
 
-        return count / n_predictions
+        if predictions.shape[0] != ground_truth.shape[0]:
+            raise ValueError("Predictions and ground_truth must have the same length.")
+
+        non_zero_mask = ground_truth != 0
+        if not np.any(non_zero_mask):
+            raise ValueError(
+                "Mean Absolute Percentage Error is undefined "
+                "for ground_truth values of zero."
+            )
+
+        mape = (
+            np.mean(
+                np.abs(
+                    (ground_truth[non_zero_mask] - predictions[non_zero_mask])
+                    / ground_truth[non_zero_mask]
+                )
+            )
+            * 100
+        )
+        return mape
 
 
 class Precision(Metric):
@@ -133,12 +157,13 @@ class Precision(Metric):
     p = True positive / all positives
     """
 
-    def _evaluate(
+    def __call__(
         self,
         predictions: np.ndarray,
         ground_truth: np.ndarray,
         positive: str | None | bool = None,
     ) -> float:
+        """Measure the precision of the model."""
         _check_positive(positive)
 
         # initialize variables
@@ -170,12 +195,13 @@ class Recall(Metric):
     Recall = true positives / (true positives + false negatives)
     """
 
-    def _evaluate(
+    def __call__(
         self,
         predictions: np.ndarray,
         ground_truth: np.ndarray,
-        positive: str | None | bool = None,
+        positive: str | None | bool = True,
     ) -> float:
+        """Measure the recall of the model."""
         _check_positive(positive)
 
         true_positives = 0
@@ -204,7 +230,8 @@ class LogLoss(Metric):
     Log Loss= -N1∑i = 1N∑j = 1Myij⋅log(pij)
     """
 
-    def _evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+        """Measure the log loss of the model."""
         clip_size = 1e-15
         predictions = np.clip(predictions, clip_size, 1 - clip_size)
         log_loss = np.sum(

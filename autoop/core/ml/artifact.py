@@ -1,4 +1,4 @@
-import uuid
+import base64
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -10,15 +10,14 @@ class Artifact(BaseModel):
 
     type: str
     name: str
-    asset_path: str
+    asset_path: str = ""
     version: str = "1.0.0"
     data: bytes = b""
     tags: List[str] = []
     metadata: Dict[str, Any] = {
-            "created_at": datetime.now().isoformat(),
-            "file_size": len(data)
-        }
-    id: str = str(uuid.uuid4())
+        "created_at": datetime.now().isoformat(),
+        "file_size": len(data),
+    }
 
     @property
     def typ(self) -> str:
@@ -39,6 +38,12 @@ class Artifact(BaseModel):
     def data(self, data: bytes):
         """Setter for _data, encodes data in base64."""
         self._data = data
+
+    @property
+    def id(self) -> str:
+        """ID of the artifact."""
+        encoded = str(base64.b64encode(self.asset_path.encode())) + self.version
+        return str(encoded)
 
     def read(self) -> bytes:
         """Read the artifact."""

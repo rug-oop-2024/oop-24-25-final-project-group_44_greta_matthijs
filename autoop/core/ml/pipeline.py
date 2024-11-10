@@ -1,26 +1,29 @@
-from typing import List
 import pickle
+from typing import List
+
+import numpy as np
 
 from autoop.core.ml.artifact import Artifact
 from autoop.core.ml.dataset import Dataset
-from autoop.core.ml.model import Model
 from autoop.core.ml.feature import Feature
 from autoop.core.ml.metric import Metric
+from autoop.core.ml.model import Model
 from autoop.functional.preprocessing import preprocess_features
-import numpy as np
 
 
-class Pipeline():
-    """Pipeline class used to train and evaluate models"""
-    def __init__(self,
-                 metrics: List[Metric],
-                 dataset: Dataset,
-                 model: Model,
-                 input_features: List[Feature],
-                 target_feature: Feature,
-                 split=0.8,
-                 ):
-        """Initializes the pipeline with the given parameters"""
+class Pipeline:
+    """Pipeline class used to train and evaluate models."""
+
+    def __init__(
+        self,
+        metrics: List[Metric],
+        dataset: Dataset,
+        model: Model,
+        input_features: List[Feature],
+        target_feature: Feature,
+        split=0.8,
+    ):
+        """Initialize the pipeline with the given parameters."""
         self._dataset = dataset
         self._model = model
         self._input_features = input_features
@@ -29,31 +32,34 @@ class Pipeline():
         self._artifacts = {}
         self._split = split
         if target_feature.type == "categorical" and model.type != "classification":
-            raise ValueError("Model type must be classification for categorical target feature")
+            raise ValueError(
+                "Model type must be classification for categorical target feature"
+            )
         if target_feature.type == "continuous" and model.type != "regression":
-            raise ValueError("Model type must be regression for continuous target feature")
+            raise ValueError(
+                "Model type must be regression for continuous target feature"
+            )
 
     def __str__(self):
-        """Used to get the string representation of the pipeline"""
+        """Get the string representation of the pipeline."""
         return f"""
 Pipeline(
-    model={self._model.type},
-    input_features={list(map(str, self._input_features))},
-    target_feature={str(self._target_feature)},
-    split={self._split},
-    metrics={list(map(str, self._metrics))},
-)
+    \nmodel={self._model.type},
+    \ninput_features={list(map(str, self._input_features))},
+    \ntarget_feature={str(self._target_feature)},
+    \nsplit={self._split},
+    \nmetrics={list(map(str, self._metrics))},
+\n)
 """
 
     @property
     def model(self):
-        """Used to get the model used in the pipeline"""
+        """Used to get the model used in the pipeline."""
         return self._model
 
     @property
     def artifacts(self) -> List[Artifact]:
-        """Used to get the artifacts generated during the pipeline execution to be saved
-        """
+        """Used to get the artifacts."""
         artifacts = []
         for name, artifact in self._artifacts.items():
             artifact_type = artifact.get("type")
@@ -70,20 +76,26 @@ Pipeline(
             "target_feature": self._target_feature,
             "split": self._split,
         }
-        artifacts.append(Artifact(name="pipeline_config", data=pickle.dumps(pipeline_data)))
-        artifacts.append(self._model.to_artifact(name=f"pipeline_model_{self._model.type}"))
+        artifacts.append(
+            Artifact(name="pipeline_config", data=pickle.dumps(pipeline_data))
+        )
+        artifacts.append(
+            self._model.to_artifact(name=f"pipeline_model_{self._model.type}")
+        )
         return artifacts
 
     def _register_artifact(self, name: str, artifact):
-        """Registers an artifact with the pipeline"""
+        """Registers an artifact with the pipeline."""
         self._artifacts[name] = artifact
 
     def _preprocess_features(self):
-        """Preprocesses the features in the dataset"""
-        (target_feature_name, target_data, artifact) = preprocess_features([self._target_feature], self._dataset)[0]
+        """Preprocesses the features in the dataset."""
+        (target_feature_name, target_data, artifact) = preprocess_features(
+            [self._target_feature], self._dataset
+        )[0]
         self._register_artifact(target_feature_name, artifact)
         input_results = preprocess_features(self._input_features, self._dataset)
-        for (feature_name, data, artifact) in input_results:
+        for feature_name, data, artifact in input_results:
             self._register_artifact(feature_name, artifact)
         # Get the input vectors and output vector, sort by feature name for consistency
         self._output_vector = target_data
@@ -93,23 +105,27 @@ Pipeline(
         """Splits the data into training and testing sets"""
         # Split the data into training and testing sets
         split = self._split
-        self._train_X = [vector[:int(split * len(vector))] for vector in self._input_vectors]
-        self._test_X = [vector[int(split * len(vector)):] for vector in self._input_vectors]
-        self._train_y = self._output_vector[:int(split * len(self._output_vector))]
-        self._test_y = self._output_vector[int(split * len(self._output_vector)):]
+        self._train_X = [
+            vector[: int(split * len(vector))] for vector in self._input_vectors
+        ]
+        self._test_X = [
+            vector[int(split * len(vector)) :] for vector in self._input_vectors
+        ]
+        self._train_y = self._output_vector[: int(split * len(self._output_vector))]
+        self._test_y = self._output_vector[int(split * len(self._output_vector)) :]
 
     def _compact_vectors(self, vectors: List[np.array]) -> np.array:
-        """Compacts the input vectors into a single matrix"""
+        """Compacts the input vectors into a single matrix."""
         return np.concatenate(vectors, axis=1)
 
     def _train(self):
-        """Trains the model on the training data"""
+        """Trains the model on the training data."""
         X = self._compact_vectors(self._train_X)
         Y = self._train_y
         self._model.fit(X, Y)
 
     def _evaluate(self):
-        """Evaluates the model on the test data"""
+        """Evaluate the model on the test data."""
         X = self._compact_vectors(self._test_X)
         Y = self._test_y
         self._metrics_results = []
@@ -120,7 +136,7 @@ Pipeline(
         self._predictions = predictions
 
     def execute(self):
-        """Executes the pipeline and returns the results"""
+        """Execute the pipeline and returns the results"""
         self._preprocess_features()
         self._split_data()
         self._train()
@@ -142,3 +158,28 @@ Pipeline(
             "test_metrics": test_metrics_results,
             "test_predictions": test_predictions,
         }
+
+    def _save(self, name: str, version: str = "1.0.0"):
+        """Save the pipeline as an artifact using the given name and version."""
+        pipeline_data = {
+            "dataset": self._dataset,
+            "model": self._model,
+            "input_features": self._input_features,
+            "target_feature": self._target_feature,
+            "split": self._split,
+            "metrics": self._metrics,
+        }
+
+        # Serialize pipeline data to bytes using pickle
+        artifact_data = pickle.dumps(pipeline_data)
+        path = f"{name}.pkl"
+
+        pipeline_artifact = Artifact(
+            name=name,
+            version=version,
+            type="pipeline",
+            data=artifact_data,
+            asset_path=path,
+        )
+
+        return pipeline_artifact
