@@ -1,22 +1,23 @@
 import numpy as np
-from sklearn.linear_model import LogisticRegression
+
+from sklearn.ensemble import RandomForestClassifier
 
 from autoop.core.ml.model.model import Model
 
 
-class LogisticRegressionModel(Model):
-    """Logistic Regression model class."""
+class RandomForestModel(Model):
+    """Support Vector Classifier model class."""
 
     def __init__(self):
-        """Initialize a Decision Tree model."""
-        model = LogisticRegression()
+        """Initialize the Support Vector Classifier model."""
+        model = RandomForestClassifier()
         super().__init__(model=model, typ="classification")
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
-        """Fit the Logistic Regression model to the data."""
+        """Fit the Support Vector Classifier model to the data."""
         self.model.fit(X, y)
         self.parameters = self.model.get_params()
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """Make predictions using the Logistic Regression model."""
+        """Make predictions using the Support Vector Classifier model."""
         return self.model.predict(X)

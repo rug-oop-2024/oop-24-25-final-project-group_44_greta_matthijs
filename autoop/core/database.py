@@ -4,6 +4,7 @@ from typing import Tuple, List, Union
 
 from autoop.core.storage import Storage
 
+
 class Database():
 
     def __init__(self, storage: Storage):
@@ -35,12 +36,12 @@ class Database():
             collection (str): The collection to get the data from
             id (str): The id of the data
         Returns:
-            Union[dict, None]: The data that was stored, or None if it doesn't exist
+            Union[dict, None]: The data that was stored, or None
         """
         if not self._data.get(collection, None):
             return None
         return self._data[collection].get(id, None)
-    
+
     def delete(self, collection: str, id: str):
         """Delete a key from the database
         Args:
@@ -60,7 +61,8 @@ class Database():
         Args:
             collection (str): The collection to list the data from
         Returns:
-            List[Tuple[str, dict]]: A list of tuples containing the id and data for each item in the collection
+            List[Tuple[str, dict]]: A list of tuples containing the id
+            and data for each item inthe  collection
         """
         if not self._data.get(collection, None):
             return []
@@ -84,7 +86,7 @@ class Database():
             collection, id = key.split("/")[-2:]
             if not self._data.get(collection, id):
                 self._storage.delete(f"{collection}/{id}")
-    
+
     def _load(self):
         """Load the data from storage"""
         self._data = {}
@@ -95,4 +97,3 @@ class Database():
             if collection not in self._data:
                 self._data[collection] = {}
             self._data[collection][id] = json.loads(data.decode())
-

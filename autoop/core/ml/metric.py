@@ -39,7 +39,8 @@ def get_metric(name: str):
         return MeanAbsolutePercentageError()
     else:
         raise ValueError(
-            f"\nUnknown metric: {name} \n Supported metrics are: {list(METRICS)}"
+            f"\nUnknown metric: {name} "
+            "\n Supported metrics are: {list(METRICS)}"
         )
 
 
@@ -75,13 +76,13 @@ class Metric(ABC):
     """Base class for all metrics."""
 
     @abstractmethod
-    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+    def __call__(self, predict: np.ndarray, gt: np.ndarray) -> float:
         """Calculate the metric."""
         pass
 
-    def evaluate(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+    def evaluate(self, predictions: np.ndarray, gt: np.ndarray) -> float:
         """Evaluate the metric."""
-        return self(predictions, ground_truth)
+        return self(predictions, gt)
 
 
 class MeanSquaredError(Metric):
@@ -91,24 +92,25 @@ class MeanSquaredError(Metric):
     Mean Squared Error=\frac{1}{n}\sum_{i=1}^{n}(\hat{y}^{(i)}-y^{(i)})^2$.
     """
 
-    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+    def __call__(self, predict: np.ndarray, ground_truth: np.ndarray) -> float:
         """Measure the mean squared error of the model."""
-        return np.mean((ground_truth - predictions) ** 2)
+        return np.mean((ground_truth - predict) ** 2)
 
 
 class Accuracy(Metric):
     r"""
     Calculates the accuracy.
 
-    $\text{Accuracy} = \frac{1}{n}\sum_{i=1}^{n}\mathbb{I}[\hat{y}^{(i)}=y^{i}]$
+    $\text{Accuracy} =
+    \frac{1}{n}\sum_{i=1}^{n}\mathbb{I}[\hat{y}^{(i)}=y^{i}]$
     """
 
-    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+    def __call__(self, predict: np.ndarray, ground_truth: np.ndarray) -> float:
         """Measure the accuracy model."""
-        n_predictions = len(predictions)
+        n_predictions = len(predict)
         count = 0
         for i in range(n_predictions):
-            if predictions[i] == ground_truth[i]:
+            if predict[i] == ground_truth[i]:
                 count += 1
         return count / n_predictions
 
@@ -120,13 +122,13 @@ class MeanAbsolutePercentageError(Metric):
     MAPE = (1/n) * sum(|(ground_truth - predictions) / ground_truth|) * 100
     """
 
-    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+    def __call__(self, predict: np.ndarray, ground_truth: np.ndarray) -> float:
         """Measures the MAPE of the model."""
-        predictions = np.asarray(predictions).flatten()
+        predict = np.asarray(predict).flatten()
         ground_truth = np.asarray(ground_truth).flatten()
 
-        if predictions.shape[0] != ground_truth.shape[0]:
-            raise ValueError("Predictions and ground_truth must have the same length.")
+        if predict.shape[0] != ground_truth.shape[0]:
+            raise ValueError("Predicts and gt must be the same length.")
 
         non_zero_mask = ground_truth != 0
         if not np.any(non_zero_mask):
@@ -138,7 +140,7 @@ class MeanAbsolutePercentageError(Metric):
         mape = (
             np.mean(
                 np.abs(
-                    (ground_truth[non_zero_mask] - predictions[non_zero_mask])
+                    (ground_truth[non_zero_mask] - predict[non_zero_mask])
                     / ground_truth[non_zero_mask]
                 )
             )
@@ -230,7 +232,9 @@ class LogLoss(Metric):
     Log Loss= -N1∑i = 1N∑j = 1Myij⋅log(pij)
     """
 
-    def __call__(self, predictions: np.ndarray, ground_truth: np.ndarray) -> float:
+    def __call__(
+            self, predictions: np.ndarray, ground_truth: np.ndarray
+    ) -> float:
         """Measure the log loss of the model."""
         clip_size = 1e-15
         predictions = np.clip(predictions, clip_size, 1 - clip_size)

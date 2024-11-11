@@ -42,8 +42,8 @@ class Artifact(BaseModel):
     @property
     def id(self) -> str:
         """ID of the artifact."""
-        encoded = str(base64.b64encode(self.asset_path.encode())) + self.version
-        return str(encoded)
+        coded = str(base64.b64encode(self.asset_path.encode())) + self.version
+        return str(coded)
 
     def read(self) -> bytes:
         """Read the artifact."""

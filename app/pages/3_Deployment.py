@@ -62,7 +62,8 @@ if pipelines:
     if st.button("Load Pipeline"):
         pipeline = load_pipeline(selected)
         st.session_state["pipeline"] = pipeline
-        st.write("Pipeline loaded successfully, provide a file to make predictions.")
+        st.write("Pipeline loaded successfully."
+                 "\nProvide a file to make predictions.")
 
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 
@@ -84,7 +85,7 @@ if pipelines:
                     st.write(prediction)
                 else:
                     st.write(
-                        "Dataset does not contain the required features for the pipeline."
+                        "Dataset does not contain the required features."
                     )
             except Exception as e:
                 st.write(f"Error executing pipeline: {e}")

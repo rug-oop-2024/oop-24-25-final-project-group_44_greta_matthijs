@@ -94,10 +94,12 @@ Pipeline(
             [self._target_feature], self._dataset
         )[0]
         self._register_artifact(target_feature_name, artifact)
-        input_results = preprocess_features(self._input_features, self._dataset)
+        input_results = preprocess_features(
+            self._input_features, self._dataset)
         for feature_name, data, artifact in input_results:
             self._register_artifact(feature_name, artifact)
-        # Get the input vectors and output vector, sort by feature name for consistency
+        # Get the input vectors and output vector,
+        # sort by feature name for consistency
         self._output_vector = target_data
         self._input_vectors = [data for (feature_name, data, artifact) in input_results]
 
@@ -109,10 +111,10 @@ Pipeline(
             vector[: int(split * len(vector))] for vector in self._input_vectors
         ]
         self._test_X = [
-            vector[int(split * len(vector)) :] for vector in self._input_vectors
+            vector[int(split * len(vector)):] for vector in self._input_vectors
         ]
         self._train_y = self._output_vector[: int(split * len(self._output_vector))]
-        self._test_y = self._output_vector[int(split * len(self._output_vector)) :]
+        self._test_y = self._output_vector[int(split * len(self._output_vector)):]
 
     def _compact_vectors(self, vectors: List[np.array]) -> np.array:
         """Compacts the input vectors into a single matrix."""
@@ -160,7 +162,7 @@ Pipeline(
         }
 
     def _save(self, name: str, version: str = "1.0.0"):
-        """Save the pipeline as an artifact using the given name and version."""
+        """Save the pipeline as an artifact."""
         pipeline_data = {
             "dataset": self._dataset,
             "model": self._model,

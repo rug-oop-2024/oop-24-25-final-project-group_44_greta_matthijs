@@ -5,14 +5,15 @@ from autoop.core.ml.dataset import Dataset
 from autoop.core.ml.metric import METRICS, get_metric
 from autoop.core.ml.model.classification.decisiontree import DecisionTreeModel
 from autoop.core.ml.model.classification.knearest import KNearestNeighborsModel
-from autoop.core.ml.model.classification.logisticregression import LogisticRegression
+from autoop.core.ml.model.classification.random_forest import RandomForestModel
 from autoop.core.ml.model.regression.lasso import LassoRegression
 from autoop.core.ml.model.regression.multiple_linear_regression import (
     MultipleLinearRegression,
 )
 from autoop.core.ml.model.regression.ridge import RidgeRegression
 from autoop.core.ml.pipeline import Pipeline
-from autoop.functional.feature import detect_feature_types, improved_detect_features
+from autoop.functional.feature import detect_feature_types
+from autoop.functional.feature import improved_detect_features
 
 st.set_page_config(page_title="Modelling", page_icon="📈")
 
@@ -60,11 +61,17 @@ if selected_dataset:
     rest_feature_names = [
         feature for feature in feature_names if feature != target_feature
     ]
-    input_features = st.multiselect("Select Input Features", rest_feature_names)
-    input_features = [feature for feature in features if feature.name in input_features]
+    input_features = st.multiselect(
+        "Select Input Features", rest_feature_names
+    )
+    input_features = [
+        feature for feature in features if feature.name in input_features
+    ]
 
     st.write("### Detected Task Type")
-    target = next(feature for feature in features if feature.name == target_feature)
+    target = next(
+        feature for feature in features if feature.name == target_feature
+    )
     if target.type == "categorical":
         st.write("##### Classification Task")
     else:
@@ -77,36 +84,38 @@ if selected_dataset:
         "Ridge Regression",
     ]
     classification_models = [
-        "Logistic Regression",
+        "Support Vector Classifier",
         "K Nearest Neighbors",
         "Decision Tree",
     ]
 
     if target.type == "categorical":
-        model = st.selectbox("Select Model", classification_models)
+        model_name = st.selectbox("Select Model", classification_models)
     else:
-        model = st.selectbox("Select Model", regression_models)
+        model_name = st.selectbox("Select Model", regression_models)
 
-    if model == "Multiple Linear Regression":
+    if model_name == "Multiple Linear Regression":
         model = MultipleLinearRegression()
-    elif model == "Lasso Regression":
+    elif model_name == "Lasso Regression":
         model = LassoRegression()
-    elif model == "Ridge Regression":
+    elif model_name == "Ridge Regression":
         model = RidgeRegression()
-    elif model == "Logistic Regression":
-        model = LogisticRegression()
-    elif model == "K Nearest Neighbors":
+    elif model_name == "Support Vector Classifier":
+        model = RandomForestModel()
+    elif model_name == "K Nearest Neighbors":
         model = KNearestNeighborsModel()
-    elif model == "Decision Tree":
+    elif model_name == "Decision Tree":
         model = DecisionTreeModel()
 
     st.write("### Split Data")
     split = st.slider("Select Split Ratio", 0.1, 0.9, 0.8, 0.1)
 
     st.write("### Metrics")
-    metrics = METRICS
-    metric_names = [metric for metric in metrics]
-    selected_metrics = st.multiselect("Select Metrics", METRICS)
+    if target.type == "categorical":
+        metrics = ["mean_squared_error", "log_loss", "mean_squared_error"]
+        selected_metrics = st.multiselect("Select Metrics", metrics)
+    else:
+        selected_metrics = st.multiselect("Select Metrics", METRICS)
     metrics = []
     for metric_name in selected_metrics:
         try:
@@ -116,7 +125,9 @@ if selected_dataset:
             st.write(f"Error: {e}")
 
     st.write("### Pipeline Summary")
-    pipeline = Pipeline(metrics, selected_dataset, model, input_features, target, split)
+    pipeline = Pipeline(
+        metrics, selected_dataset, model, input_features, target, split
+    )
     st.write(str(pipeline))
 
     if st.button("Train Model"):
@@ -138,4 +149,5 @@ if selected_dataset:
         st.write("Predictions made successfully!")
 
 else:
-    st.write("No datasets found. Please upload a dataset in the previous step.")
+    st.write("No datasets found."
+             "Please upload a dataset in the previous step.")
