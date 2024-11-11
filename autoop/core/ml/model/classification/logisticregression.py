@@ -1,12 +1,14 @@
-from sklearn.linear_model import LogisticRegression
 import numpy as np
+from sklearn.linear_model import LogisticRegression
+
 from autoop.core.ml.model.model import Model
 
 
 class LogisticRegressionModel(Model):
     """Logistic Regression model class."""
+
     def __init__(self):
-        """Initialize a Logistic Regression model."""
+        """Initialize a Decision Tree model."""
         model = LogisticRegression()
         super().__init__(model=model, typ="classification")
 

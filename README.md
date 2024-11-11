@@ -153,7 +153,7 @@ If you did not implement the feature
 
 | Requirement                           | Type (FN/NF) | Implemented by       | Implementation Completed (add X if done) | Comment |
 |-------------------------------------- |--------------|----------------------|--------------------------|---------|
-| Up-to-date requirements.txt           | NF           |                      |         | |
+| Up-to-date requirements.txt           | NF           | Greta/ Matthijs      |         |x|
 | `ML/detect-features`                  | FN           | Greta                |         |x|
 | `ML/artifact`                         | NF           | Greta                |         |x|
 | `ML/feature`                          | NF           | Greta                |         |x|
@@ -173,12 +173,12 @@ If you did not implement the feature
 | `ST/modelling/pipeline/metrics`       | FN           | Greta                |         |x|
 | `ST/modelling/pipeline/summary`       | FN           | Greta                |         |x|
 | `ST/modelling/pipeline/train`         | FN           | Greta                |         |x|
-| `ST/modelling/pipeline/save`          | FN           |                      |         | |
-| `ST/page/deployment`                  | FN           |                      |         | |
-| `ST/deployment/load`                  | FN           |                      |         | |
-| `ST/deployment/predict`               | FN           |                      |         | |
+| `ST/modelling/pipeline/save`          | FN           | Greta                |         |x|
+| `ST/page/deployment`                  | FN           | Matthijs             |         |x|
+| `ST/deployment/load`                  | FN           | Matthijs             |         |x|
+| `ST/deployment/predict`               | FN           | Greta                |         |x|
 
 If you add extra features, please indicate them below:
 | Requirement                           | Type (FN/NF) | Implemented by       | Implementation Completed (add X if done) | Comment |
 |-------------------------------------- |--------------|----------------------|---------|-----|
-|           |            |                      |         | |
+| `functional/feature/improved_detect_feature`         | Greta                |         |x|                  to use it go to the Modelling page and where it now says features = detect_feature_types(selected_dataset), you replace it with: features = improved_detect_features(selected_dataset). This was an idea, because sometimes columns that are numerical can represent categories, for example 0 and 1 could be for right/wrong, yes/no. Or different numbers could represent different tasks.

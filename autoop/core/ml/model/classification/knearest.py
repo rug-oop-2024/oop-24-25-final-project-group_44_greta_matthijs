@@ -1,11 +1,13 @@
-from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
+from sklearn.neighbors import KNeighborsClassifier
+
 from autoop.core.ml.model.model import Model
 
 
 class KNearestNeighborsModel(Model):
     """K-Nearest Neighbors model class."""
-    def __init__(self, parameters: dict = None):
+
+    def __init__(self):
         """Initialize a K-Nearest Neighbors model."""
         model = KNeighborsClassifier()
         super().__init__(model=model, typ="classification")

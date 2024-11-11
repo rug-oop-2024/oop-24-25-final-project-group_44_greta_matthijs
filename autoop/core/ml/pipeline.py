@@ -85,7 +85,7 @@ Pipeline(
         return artifacts
 
     def _register_artifact(self, name: str, artifact):
-        """Registers an artifact with the pipeline."""
+        """Register an artifact with the pipeline."""
         self._artifacts[name] = artifact
 
     def _preprocess_features(self):
@@ -102,7 +102,7 @@ Pipeline(
         self._input_vectors = [data for (feature_name, data, artifact) in input_results]
 
     def _split_data(self):
-        """Splits the data into training and testing sets"""
+        """Split the data into training and testing sets."""
         # Split the data into training and testing sets
         split = self._split
         self._train_X = [
@@ -136,7 +136,7 @@ Pipeline(
         self._predictions = predictions
 
     def execute(self):
-        """Execute the pipeline and returns the results"""
+        """Execute the pipeline and returns the results."""
         self._preprocess_features()
         self._split_data()
         self._train()

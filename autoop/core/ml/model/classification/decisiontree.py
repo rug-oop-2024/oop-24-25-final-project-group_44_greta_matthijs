@@ -1,11 +1,13 @@
-from sklearn.tree import DecisionTreeClassifier
 import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+
 from autoop.core.ml.model.model import Model
 
 
 class DecisionTreeModel(Model):
     """Decision Tree model class."""
-    def __init__(self, parameters: dict = None):
+
+    def __init__(self):
         """Initialize a Decision Tree model."""
         model = DecisionTreeClassifier()
         super().__init__(model=model, typ="classification")

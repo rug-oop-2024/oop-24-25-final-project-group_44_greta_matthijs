@@ -12,13 +12,13 @@ from autoop.core.ml.model.regression.multiple_linear_regression import (
 )
 from autoop.core.ml.model.regression.ridge import RidgeRegression
 from autoop.core.ml.pipeline import Pipeline
-from autoop.functional.feature import detect_feature_types
+from autoop.functional.feature import detect_feature_types, improved_detect_features
 
 st.set_page_config(page_title="Modelling", page_icon="📈")
 
 
 def write_helper_text(text: str):
-    """Writes helper text to the page"""
+    """Write helper text to the page."""
     st.write(f'<p style="color: #888;">{text}</p>', unsafe_allow_html=True)
 
 
@@ -53,7 +53,8 @@ selected_dataset = Dataset(
 
 if selected_dataset:
     st.write("### Feature Selection")
-    features = detect_feature_types(selected_dataset)
+
+    features = improved_detect_features(selected_dataset)
     feature_names = [feature.name for feature in features]
     target_feature = st.selectbox("Select Target Feature", feature_names)
     rest_feature_names = [
