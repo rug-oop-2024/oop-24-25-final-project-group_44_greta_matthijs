@@ -32,6 +32,9 @@ automl = AutoMLSystem.get_instance()
 
 datasets = automl.registry.list(type="dataset")
 
+if not datasets:
+    st.write("No datasets found. Please upload a dataset first.")
+    st.stop()
 # your code here
 st.write("### Select a Dataset")
 dataset_names = [dataset.name for dataset in datasets]

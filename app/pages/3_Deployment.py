@@ -13,7 +13,9 @@ st.write("In this section, you can see and load your saved pipelines.")
 automl = AutoMLSystem.get_instance()
 
 pipelines = automl.registry.list(type="pipeline")
-
+if not pipelines:
+    st.write("No pipelines found. Please train a pipeline first.")
+    st.stop()
 
 def load_pipeline(selected_pipeline_name: str) -> Pipeline:
     """Load a pipeline from the registry."""
